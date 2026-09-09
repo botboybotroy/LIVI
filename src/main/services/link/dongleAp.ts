@@ -1,8 +1,8 @@
 import net from 'node:net'
 import type { Config } from '@shared/types/Config'
 
-/** What the Wi-Fi interface list carries for the dongle's own access point. */
-export const DONGLE_AP = 'livi-link'
+/** What the Wi-Fi interface and Bluetooth adapter lists carry for the dongle's own radios. */
+export const DONGLE_LINK = 'livi-link'
 
 const HOST = 'livi-link.local'
 const PORT = 5001
@@ -62,7 +62,7 @@ function talk(commands: string[], timeoutMs = APPLY_MS): Promise<string[]> {
 
 /** What the dongle is told for this configuration. */
 export function commandsFor(config: Config): string[] {
-  if (config.wifiInterface !== DONGLE_AP) {
+  if (config.wifiInterface !== DONGLE_LINK) {
     // Its radios would only sit next to the ones actually in use.
     return ['off', 'bt off']
   }

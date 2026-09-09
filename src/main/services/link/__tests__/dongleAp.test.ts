@@ -33,7 +33,13 @@ const { sockets, createConnection } = vi.hoisted(() => {
 
 vi.mock('node:net', () => ({ default: { createConnection }, createConnection }))
 
-import { commandsFor, DONGLE_AP, dongleApMac, dongleApPresent, reconcileDongleAp } from '../dongleAp'
+import {
+  commandsFor,
+  DONGLE_LINK,
+  dongleApMac,
+  dongleApPresent,
+  reconcileDongleAp
+} from '../dongleAp'
 
 const config = {
   wifiInterface: 'wlan0',
@@ -60,7 +66,7 @@ describe('what the dongle is told', () => {
   })
 
   it('hands over the settings once it is the access point', () => {
-    expect(commandsFor({ ...config, wifiInterface: DONGLE_AP })).toEqual([
+    expect(commandsFor({ ...config, wifiInterface: DONGLE_LINK })).toEqual([
       'set ssid Volvo',
       'set country DE',
       'set channel 44',
@@ -72,7 +78,7 @@ describe('what the dongle is told', () => {
   })
 
   it('stands in for a setting that was left empty', () => {
-    const bare = { ...config, wifiInterface: DONGLE_AP, carName: '', wifiPassword: '' } as Config
+    const bare = { ...config, wifiInterface: DONGLE_LINK, carName: '', wifiPassword: '' } as Config
     expect(commandsFor(bare)).toContain('set ssid LIVI')
     expect(commandsFor(bare)).toContain('set passphrase 12345678')
   })
@@ -102,7 +108,7 @@ describe('talking to the dongle', () => {
 
   it('gives up on a refusal instead of carrying on', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const done = reconcileDongleAp({ ...config, wifiInterface: DONGLE_AP })
+    const done = reconcileDongleAp({ ...config, wifiInterface: DONGLE_LINK })
     const socket = sockets[0]
     await answer(socket, 1, 'error channel is out of range\n')
     await done

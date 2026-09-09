@@ -2,6 +2,8 @@
 // each tool name, so the boot scripts and their ps/pkill patterns read as before.
 
 #[cfg(target_os = "linux")]
+mod bt;
+#[cfg(target_os = "linux")]
 mod l2fwd;
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 mod mdns;
@@ -21,8 +23,9 @@ use std::path::Path;
 use std::process::ExitCode;
 
 /// The names the stack runs under, and the symlinks `livi-link.sh` creates for them.
-const TOOLS: [&str; 6] = ["seedrng", "mfid", "livi-usbproxy", "l2fwd", "mdnsd", "wifid"];
-const COMMANDS: [&str; 1] = ["wifi-channels"];
+const TOOLS: [&str; 7] =
+    ["seedrng", "mfid", "livi-usbproxy", "l2fwd", "mdnsd", "wifid", "btd"];
+const COMMANDS: [&str; 2] = ["wifi-channels", "bt-probe"];
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
@@ -53,7 +56,11 @@ fn main() -> ExitCode {
         #[cfg(target_os = "linux")]
         "wifid" => wifid::run(),
         #[cfg(target_os = "linux")]
+        "btd" => bt::run(),
+        #[cfg(target_os = "linux")]
         "wifi-channels" => wifi::run(),
+        #[cfg(target_os = "linux")]
+        "bt-probe" => bt::probe(),
         other => {
             if !other.is_empty() && (TOOLS.contains(&other) || COMMANDS.contains(&other)) {
                 eprintln!("livi-link: {other} runs on the dongle (linux) only");

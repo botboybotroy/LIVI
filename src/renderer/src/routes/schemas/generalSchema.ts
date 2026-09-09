@@ -45,7 +45,7 @@ async function loadWifiInterfaces(): Promise<SelectOption[]> {
 async function loadBtAdapters(): Promise<SelectOption[]> {
   const list = await window.app?.listBtAdapters?.()
   if (!Array.isArray(list)) return []
-  return list.map((i) => ({ value: i, label: i }))
+  return list.map((i) => ({ value: i, label: i === 'livi-link' ? 'LIVI Link' : i }))
 }
 
 export const generalSchema: SettingsNode<Config> = {
@@ -202,21 +202,6 @@ export const generalSchema: SettingsNode<Config> = {
               }
             },
             {
-              type: 'select',
-              label: 'Bluetooth Interface',
-              labelKey: 'settings.btAdapter',
-              icon: 'btInterface',
-              path: 'btAdapter',
-              displayValue: true,
-              disabled: window.app?.platform !== 'linux',
-              options: [],
-              loadOptions: loadBtAdapters,
-              page: {
-                title: 'Bluetooth Interface',
-                labelTitle: 'settings.btAdapter'
-              }
-            },
-            {
               type: 'checkbox',
               label: 'Dedicated Interface',
               labelKey: 'settings.wifiDedicatedInterface',
@@ -225,6 +210,21 @@ export const generalSchema: SettingsNode<Config> = {
               disabled: window.app?.platform !== 'linux'
             }
           ]
+        },
+        {
+          type: 'select',
+          label: 'Bluetooth Interface',
+          labelKey: 'settings.btAdapter',
+          icon: 'btInterface',
+          path: 'btAdapter',
+          displayValue: true,
+          disabled: window.app?.platform !== 'linux',
+          options: [],
+          loadOptions: loadBtAdapters,
+          page: {
+            title: 'Bluetooth Interface',
+            labelTitle: 'settings.btAdapter'
+          }
         },
         {
           type: 'checkbox',

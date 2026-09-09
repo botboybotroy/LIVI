@@ -23,7 +23,10 @@ fn env_s(key: &str, default: &str) -> String {
 /// 6-byte accessory id: LIVI_CP_BT_MAC if set, else derived from the host pairing id.
 fn accessory_mac(pi: &str) -> [u8; 6] {
     if let Ok(s) = std::env::var("LIVI_CP_BT_MAC") {
-        let bytes: Vec<u8> = s.split(':').filter_map(|h| u8::from_str_radix(h, 16).ok()).collect();
+        let bytes: Vec<u8> = s
+            .split(':')
+            .filter_map(|h| u8::from_str_radix(h, 16).ok())
+            .collect();
         if bytes.len() == 6 {
             return [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]];
         }
@@ -45,14 +48,20 @@ fn cp_config() -> (CpConfig, Identity) {
         passphrase: env_s("LIVI_PASSPHRASE", "12345678"),
         channel: 36,
         security_type: SecurityType::WpaWpa2,
-        airplay_port: env_s("LIVI_CP_AIRPLAY_PORT", "7000").parse().unwrap_or(7000),
+        airplay_port: env_s("LIVI_CP_AIRPLAY_PORT", "7000")
+            .parse()
+            .unwrap_or(7000),
         source_version: env_s("LIVI_CP_SOURCE_VERSION", "950.7.1"),
         public_key: pi.clone(),
         transport: Transport::Wired,
         av_iface: None, // resolved per session from the interface facing the dongle
         available_current_ma: 500,
     };
-    let identity = Identity { name: name.clone(), ssid: name, bt_mac: accessory_mac(&pi) };
+    let identity = Identity {
+        name: name.clone(),
+        ssid: name,
+        bt_mac: accessory_mac(&pi),
+    };
     (cp, identity)
 }
 
@@ -78,7 +87,11 @@ async fn identify_on_link(link: Arc<LinkPresence>, mut auth: SharedCoprocessor) 
             }
         };
         let Some(major) = major else { continue };
-        let kind = if major == 2 { "2.0 (RSA, SHA-1)" } else { "3.0 (ECDSA, SHA-256)" };
+        let kind = if major == 2 {
+            "2.0 (RSA, SHA-1)"
+        } else {
+            "3.0 (ECDSA, SHA-256)"
+        };
         println!("[helperd] MFi coprocessor: auth protocol major {major} — {kind}");
         link.wait_until(false).await;
     }
@@ -92,7 +105,9 @@ fn start_carplay_seam(link: Arc<LinkPresence>) {
     tokio::spawn(link.clone().resolve(
         move || {
             iap2_usbmux::set_remote(&livi_dongle::link::addr(iap2_usbmux::remote::DEFAULT_PORT));
-            up_auth.replace(Box::new(NcmCoprocessor::new(&livi_dongle::link::addr(iap2_mfi::ncm::DEFAULT_PORT))));
+            up_auth.replace(Box::new(NcmCoprocessor::new(&livi_dongle::link::addr(
+                iap2_mfi::ncm::DEFAULT_PORT,
+            ))));
         },
         move || down_auth.replace(Box::new(NoCoprocessor)),
     ));
@@ -113,17 +128,43 @@ fn start_carplay_seam(link: Arc<LinkPresence>) {
     });
 
     tokio::spawn(identify_on_link(link.clone(), auth.clone()));
-    tokio::spawn(crate::wired::watch(auth.clone(), identity.clone(), cp.clone(), bcast.clone(), state.clone(), link.clone()));
-    tokio::spawn(crate::wired::watch_usbmuxd(auth, identity, cp.clone(), bcast.clone(), state, link));
-    println!("[helperd] wired CarPlay watchers started (dongle + system usbmuxd), waiting for the LIVI Link");
+    tokio::spawn(crate::wired::watch(
+        auth.clone(),
+        identity.clone(),
+        cp.clone(),
+        bcast.clone(),
+        state.clone(),
+        link.clone(),
+    ));
+    tokio::spawn(crate::wired::watch_usbmuxd(
+        auth,
+        identity,
+        cp.clone(),
+        bcast.clone(),
+        state,
+        link,
+    ));
+    println!(
+        "[helperd] wired CarPlay watchers started (dongle + system usbmuxd), waiting for the LIVI Link"
+    );
 
     let pk = env_s("LIVI_CP_PK", "");
     let pi = env_s("LIVI_CP_PI", "");
     let device_id = env_s("LIVI_CP_NAME", "LIVI");
-    match Bonjour::start(device_id, cp.airplay_port as u16, cp.source_version.clone(), pk, pi, bcast) {
+    match Bonjour::start(
+        device_id,
+        cp.airplay_port as u16,
+        cp.source_version.clone(),
+        pk,
+        pi,
+        bcast,
+    ) {
         Ok(b) => {
             std::mem::forget(b);
-            println!("[helperd] CarPlay receiver seam ready (cp-bt.sock + bonjour :{})", cp.airplay_port);
+            println!(
+                "[helperd] CarPlay receiver seam ready (cp-bt.sock + bonjour :{})",
+                cp.airplay_port
+            );
         }
         Err(e) => eprintln!("[helperd] bonjour start failed: {e}"),
     }
