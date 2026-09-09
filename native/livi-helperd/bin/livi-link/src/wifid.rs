@@ -238,8 +238,13 @@ fn apply(ap: &mut Ap, wanted: &Wanted) -> Result<(), String> {
     if let Some(parent) = std::path::Path::new(LIVE[0]).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
+    // A restart deauthenticates every client, so the same settings twice must not cause one.
+    let text = config(&base, wanted);
+    if running() && std::fs::read_to_string(&ap.config).is_ok_and(|current| current == text) {
+        return Ok(());
+    }
     let next = if ap.config == LIVE[0] { LIVE[1] } else { LIVE[0] };
-    std::fs::write(next, config(&base, wanted)).map_err(|e| format!("{next}: {e}"))?;
+    std::fs::write(next, text).map_err(|e| format!("{next}: {e}"))?;
 
     let previous = ap.config.clone();
     stop(ap);
@@ -335,6 +340,9 @@ fn status(ap: &Ap) -> String {
     let mut out = String::new();
     out.push_str(if running() { "state on\n" } else { "state off\n" });
     out.push_str(if bt_up() { "bt on\n" } else { "bt off\n" });
+    if let Ok(mac) = std::fs::read_to_string(format!("/sys/class/net/{IFACE}/address")) {
+        out.push_str(&format!("mac {}\n", mac.trim()));
+    }
     out.push_str(if ap.config == BASE { "config fallback\n" } else { "config host\n" });
     if let Ok(text) = std::fs::read_to_string(&ap.config) {
         for line in text.lines() {

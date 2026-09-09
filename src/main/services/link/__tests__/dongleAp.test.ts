@@ -33,7 +33,7 @@ const { sockets, createConnection } = vi.hoisted(() => {
 
 vi.mock('node:net', () => ({ default: { createConnection }, createConnection }))
 
-import { commandsFor, DONGLE_AP, dongleApPresent, reconcileDongleAp } from '../dongleAp'
+import { commandsFor, DONGLE_AP, dongleApMac, dongleApPresent, reconcileDongleAp } from '../dongleAp'
 
 const config = {
   wifiInterface: 'wlan0',
@@ -84,9 +84,20 @@ describe('talking to the dongle', () => {
     const socket = sockets[0]
     await answer(socket, 1)
     await answer(socket, 2)
+    await answer(socket, 3, 'mac 02:50:43:02:ff:01\nok\n')
     await done
-    expect(socket.sent).toEqual(['off\n', 'bt off\n'])
+    expect(socket.sent).toEqual(['off\n', 'bt off\n', 'status\n'])
     expect(socket.destroyed).toBe(true)
+  })
+
+  it('remembers the access point MAC the state carries', async () => {
+    const done = reconcileDongleAp(config)
+    const socket = sockets[0]
+    await answer(socket, 1)
+    await answer(socket, 2)
+    await answer(socket, 3, 'state on\nmac 02:50:43:02:ff:01\nok\n')
+    await done
+    expect(dongleApMac()).toBe('02:50:43:02:ff:01')
   })
 
   it('gives up on a refusal instead of carrying on', async () => {

@@ -11,6 +11,19 @@ struct Iface {
     fd: OwnedFd,
     index: libc::c_int,
     name: String,
+    mac: [u8; 6],
+}
+
+/// The interface's own address, so frames meant for it are not put on the other side.
+fn own_mac(name: &str) -> [u8; 6] {
+    let mut mac = [0u8; 6];
+    let Ok(text) = std::fs::read_to_string(format!("/sys/class/net/{name}/address")) else {
+        return mac;
+    };
+    for (slot, byte) in mac.iter_mut().zip(text.trim().split(':')) {
+        *slot = u8::from_str_radix(byte, 16).unwrap_or(0);
+    }
+    mac
 }
 
 fn open(name: &str) -> Result<Iface, String> {
@@ -56,7 +69,7 @@ fn open(name: &str) -> Result<Iface, String> {
     if bound < 0 {
         return Err(format!("bind {name}: {}", std::io::Error::last_os_error()));
     }
-    Ok(Iface { fd, index, name: name.to_string() })
+    Ok(Iface { fd, index, name: name.to_string(), mac: own_mac(name) })
 }
 
 pub fn run(args: &[String]) -> ExitCode {
@@ -102,8 +115,12 @@ pub fn run(args: &[String]) -> ExitCode {
                     &raw mut from_len,
                 )
             };
-            // Our own transmissions come back on the same socket; forwarding them would loop.
+            // Our own transmissions come back on the same socket, forwarding them would loop.
             if n <= 0 || from.sll_pkttype == libc::PACKET_OUTGOING {
+                continue;
+            }
+            // Addressed to this interface itself, so it was meant for us and not for the far side.
+            if frame[..6] == input.mac {
                 continue;
             }
             let n = n as usize;

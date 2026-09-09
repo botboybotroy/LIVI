@@ -1,5 +1,6 @@
 // CarlinKit dongle on USB.
 
+pub mod ap;
 pub mod link;
 pub mod upload;
 pub mod wire;

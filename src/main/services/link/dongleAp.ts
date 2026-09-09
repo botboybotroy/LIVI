@@ -79,6 +79,14 @@ export function commandsFor(config: Config): string[] {
   ]
 }
 
+/** The access point's MAC, as of the last exchange with the dongle. */
+let apMac: string | null = null
+
+/** What the phone is told to look for. Empty until the dongle has answered once. */
+export function dongleApMac(): string | null {
+  return apMac
+}
+
 /** Whether a LIVI Link is on the network and ready to be configured. */
 export async function dongleApPresent(): Promise<boolean> {
   try {
@@ -92,7 +100,12 @@ export async function dongleApPresent(): Promise<boolean> {
 /** Hands the dongle its settings when it is the chosen AP, and silences it when it is not. */
 export async function reconcileDongleAp(config: Config): Promise<void> {
   try {
-    await talk(commandsFor(config))
+    const answers = await talk([...commandsFor(config), 'status'])
+    apMac =
+      answers
+        .find((line) => line.startsWith('mac '))
+        ?.slice(4)
+        .trim() || apMac
   } catch (err) {
     // No dongle, or one that refused the change. Either way nothing local depends on it.
     console.warn('[dongleAp]', String(err))

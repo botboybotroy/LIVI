@@ -30,6 +30,8 @@ pub struct CpConfig {
     /// address the phone connects back to.
     pub av_iface: Option<String>,
     pub available_current_ma: u16,
+    /// The access point's MAC when it is not this host's, so the phone is told the right one.
+    pub ap_mac: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -246,7 +248,7 @@ fn carplay_start_session(cp: &CpConfig) -> Option<CarPlayStartSession> {
             security_type: Some(cp.security_type as u8),
         }),
         port: Some(cp.airplay_port),
-        device_identifier: net::wlan_mac(&cp.wifi_iface),
+        device_identifier: cp.ap_mac.clone().or_else(|| net::wlan_mac(&cp.wifi_iface)),
         public_key: Some(cp.public_key.clone()),
         source_version: Some(cp.source_version.clone()),
     })
@@ -312,11 +314,17 @@ pub async fn run_accessory<C: ControlChannel, A: AsyncAuth>(
                         ),
                         Err(e) => println!("[cp] CarPlayAvailability undecodable: {e}"),
                     }
+                    let ip = start
+                        .wireless_attributes
+                        .as_ref()
+                        .map(|w| &w.ip_address)
+                        .or_else(|| start.wired_attributes.as_ref().map(|w| &w.ip_address))
+                        .map(|a| a.join(","))
+                        .unwrap_or_default();
                     println!(
-                        "[cp] CarPlayStartSession ip={:?} port={:?} device_id={:?} pk_len={}",
-                        start.wired_attributes.as_ref().map(|w| &w.ip_address),
-                        start.port,
-                        start.device_identifier,
+                        "[cp] CarPlayStartSession ip={ip} port={} device_id={} pk_len={}",
+                        start.port.unwrap_or(0),
+                        start.device_identifier.as_deref().unwrap_or("-"),
                         start.public_key.as_deref().unwrap_or("").len()
                     );
                     if ch.send(start.encode()).await.is_err() {

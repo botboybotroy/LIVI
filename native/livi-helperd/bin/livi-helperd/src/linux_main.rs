@@ -62,11 +62,20 @@ impl DeviceConfig {
     }
 }
 
+/// The configured Wi-Fi interface.
+fn ap_iface(dc: &DeviceConfig) -> String {
+    let iface = dc.string("wifiInterface", "LIVI_WIFI_IFACE", "wlan0");
+    if iface != livi_dongle::link::AP_IFACE {
+        return iface;
+    }
+    livi_runtime::net::iface_facing(livi_dongle::link::LINK_NAME).unwrap_or(iface)
+}
+
 /// `--wifi-ap`: dedicated early-boot AP mode (hostapd + dnsmasq ownership).
 pub fn run_wifi_ap() -> ExitCode {
     let dc = DeviceConfig::load();
     let cfg = livi_runtime::wifi_ap::ApConfig {
-        iface: dc.string("wifiInterface", "LIVI_WIFI_IFACE", "wlan0"),
+        iface: ap_iface(&dc),
         ssid: dc.string("carName", "LIVI_CP_NAME", "LIVI"),
         passphrase: dc.string("wifiPassword", "LIVI_PASSPHRASE", "12345678"),
         channel: dc.int("wifiChannel", "LIVI_CHANNEL", 36u16) as u8,
@@ -109,7 +118,11 @@ async fn serve() -> Result<(), Box<dyn std::error::Error>> {
     let adapter = dc.string("btAdapter", "LIVI_BT_ADAPTER", "hci0");
     let name = dc.string("carName", "LIVI_CP_NAME", "LIVI");
     let ssid = name.clone();
-    let wifi_iface = dc.string("wifiInterface", "LIVI_WIFI_IFACE", "wlan0");
+    let wifi_iface = ap_iface(&dc);
+    let ap_mac = (dc.string("wifiInterface", "LIVI_WIFI_IFACE", "wlan0")
+        == livi_dongle::link::AP_IFACE)
+        .then(livi_dongle::ap::mac)
+        .flatten();
     let cp = CpConfig {
         wifi_iface: wifi_iface.clone(),
         ssid: ssid.clone(),
@@ -122,6 +135,7 @@ async fn serve() -> Result<(), Box<dyn std::error::Error>> {
         transport: Transport::Wireless,
         av_iface: None,
         available_current_ma: dc.int("carPlayAvailableCurrentMa", "LIVI_CP_AVAILABLE_CURRENT_MA", 500u16),
+        ap_mac: ap_mac.clone(),
     };
     let pk = std::env::var("LIVI_CP_PK").unwrap_or_default();
     let pi = std::env::var("LIVI_CP_PI").unwrap_or_default();
