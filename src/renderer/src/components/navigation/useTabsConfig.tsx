@@ -1,6 +1,7 @@
 // Icons
 import CameraOutlinedIcon from '@mui/icons-material/CameraOutlined'
 import CropPortraitOutlinedIcon from '@mui/icons-material/CropPortraitOutlined'
+import GraphicEqOutlinedIcon from '@mui/icons-material/GraphicEqOutlined'
 import PlayCircleOutlinedIcon from '@mui/icons-material/PlayCircleOutlined'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import SpeedOutlinedIcon from '@mui/icons-material/SpeedOutlined'
@@ -173,6 +174,11 @@ export const useTabsConfig: (receivingVideo: boolean) => TabConfig[] = (receivin
           }
         ]
       : []),
+    {
+      label: 'Equalizer',
+      path: ROUTES.EQUALIZER,
+      icon: <GraphicEqOutlinedIcon sx={{ fontSize: iconFontSize }} />
+    },
     ...(customOnRole
       ? [
           {

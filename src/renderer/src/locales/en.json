@@ -82,6 +82,7 @@
     "startPageMedia": "Media",
     "startPageTelemetry": "Telemetry",
     "startPageCamera": "Camera",
+    "startPageEqualizer": "Equalizer",
     "startPageCustom": "Custom",
     "customUrl": "Address",
     "startPageSettings": "Settings",

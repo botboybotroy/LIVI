@@ -192,6 +192,15 @@ export type Config = {
   audioInputDeviceLabel?: string
   visualAudioDelayMs: number
 
+  // Equalizer + speaker balance
+  equalizerEnabled: boolean
+  // Ten band gains in dB, -12..+12, ordered 31 Hz .. 16 kHz
+  equalizerBands: number[]
+  // 0 = full front, 0.5 = centred, 1 = full rear
+  equalizerFade: number
+  // 0 = full left, 0.5 = centred, 1 = full right
+  equalizerBalance: number
+
   // Auto-connect + auto-switch
   autoConn: boolean
   autoSwitchOnReverse: boolean

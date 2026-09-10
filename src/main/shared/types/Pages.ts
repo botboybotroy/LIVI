@@ -3,6 +3,7 @@ export enum ROUTES {
   TELEMETRY = '/telemetry',
   MEDIA = '/media',
   CAMERA = '/camera',
+  EQUALIZER = '/equalizer',
   CUSTOM = '/custom',
   SETTINGS = '/settings'
 }
@@ -19,6 +20,7 @@ export const PAGES: readonly Page[] = [
   { path: ROUTES.TELEMETRY, label: 'Telemetry', labelKey: 'settings.startPageTelemetry' },
   { path: ROUTES.MEDIA, label: 'Media', labelKey: 'settings.startPageMedia' },
   { path: ROUTES.CAMERA, label: 'Camera', labelKey: 'settings.startPageCamera' },
+  { path: ROUTES.EQUALIZER, label: 'Equalizer', labelKey: 'settings.startPageEqualizer' },
   { path: ROUTES.CUSTOM, label: 'Custom', labelKey: 'settings.startPageCustom' },
   { path: ROUTES.SETTINGS, label: 'Settings', labelKey: 'settings.startPageSettings' }
 ]

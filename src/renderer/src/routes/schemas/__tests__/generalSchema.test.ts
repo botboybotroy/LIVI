@@ -156,6 +156,7 @@ describe('generalSchema', () => {
       { label: 'Telemetry', labelKey: 'settings.startPageTelemetry', value: '/telemetry' },
       { label: 'Media', labelKey: 'settings.startPageMedia', value: '/media' },
       { label: 'Camera', labelKey: 'settings.startPageCamera', value: '/camera' },
+      { label: 'Equalizer', labelKey: 'settings.startPageEqualizer', value: '/equalizer' },
       { label: 'Custom', labelKey: 'settings.startPageCustom', value: '/custom' },
       { label: 'Settings', labelKey: 'settings.startPageSettings', value: '/settings' }
     ])

@@ -1,6 +1,7 @@
 export * from './camera'
 export * from './cluster'
 export * from './custom'
+export * from './equalizer'
 export * from './media'
 export * from './projection'
 export * from './settings'

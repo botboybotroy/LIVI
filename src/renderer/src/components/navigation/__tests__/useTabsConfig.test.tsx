@@ -95,7 +95,13 @@ describe('useTabsConfig', () => {
 
   test('returns base tabs by default', () => {
     const { result } = renderHook(() => useTabsConfig(false))
-    expect(result.current.map((t) => t.path)).toEqual(['/', '/media', '/camera', '/settings'])
+    expect(result.current.map((t) => t.path)).toEqual([
+      '/',
+      '/media',
+      '/camera',
+      '/equalizer',
+      '/settings'
+    ])
   })
 
   test('adds the telemetry tab when a dashboard is routed to main', () => {
@@ -106,6 +112,7 @@ describe('useTabsConfig', () => {
       '/telemetry',
       '/media',
       '/camera',
+      '/equalizer',
       '/settings'
     ])
   })
@@ -113,7 +120,7 @@ describe('useTabsConfig', () => {
   test('hides the media tab when media is not routed to main', () => {
     mockState.mainMedia = false
     const { result } = renderHook(() => useTabsConfig(false))
-    expect(result.current.map((t) => t.path)).toEqual(['/', '/camera', '/settings'])
+    expect(result.current.map((t) => t.path)).toEqual(['/', '/camera', '/equalizer', '/settings'])
   })
 
   test('adds the custom tab above settings when routed to main', () => {
@@ -123,6 +130,7 @@ describe('useTabsConfig', () => {
       '/',
       '/media',
       '/camera',
+      '/equalizer',
       '/custom',
       '/settings'
     ])
@@ -167,7 +175,13 @@ describe('useTabsConfig', () => {
 
     const { result } = renderHook(() => useTabsConfig(false))
 
-    expect(result.current.map((t) => t.path)).toEqual(['/', '/media', '/camera', '/settings'])
+    expect(result.current.map((t) => t.path)).toEqual([
+      '/',
+      '/media',
+      '/camera',
+      '/equalizer',
+      '/settings'
+    ])
   })
 
   test('uses highlighted CarPlay icon styling when streaming is active regardless of receivingVideo', () => {
